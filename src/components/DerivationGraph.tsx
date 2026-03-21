@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 import type { GraphNode, GraphLink } from '../utils/derivationEngine';
 
@@ -9,172 +9,142 @@ interface DerivationGraphProps {
   height: number;
 }
 
-interface SimulationNode extends GraphNode, d3.SimulationNodeDatum {
-  fx?: number;
-  fy?: number;
+interface SimNode extends d3.SimulationNodeDatum {
+  id: string;
+  label: string;
+  symbol: string;
+  unit: string;
+  type: 'known' | 'formula' | 'target' | 'derived';
 }
 
-interface SimulationLink extends d3.SimulationLinkDatum<SimulationNode> {
+interface SimLink extends d3.SimulationLinkDatum<SimNode> {
   type: 'input' | 'output';
 }
 
 const DerivationGraph: React.FC<DerivationGraphProps> = ({ nodes, links, width, height }) => {
   const svgRef = useRef<SVGSVGElement>(null);
-
-  const simulationNodes: SimulationNode[] = useMemo(() =>
-    nodes.map(n => ({ ...n })),
-    [nodes]
-  );
-
-  const simulationLinks: SimulationLink[] = useMemo(() =>
-    links.map(l => ({
-      ...l,
-      source: l.source,
-      target: l.target
-    })),
-    [links]
-  );
+  const simRef = useRef<d3.Simulation<SimNode, SimLink> | null>(null);
 
   useEffect(() => {
     if (!svgRef.current || nodes.length === 0) return;
 
+    // 停止之前的 simulation
+    if (simRef.current) {
+      simRef.current.stop();
+    }
+
     const svg = d3.select(svgRef.current);
     svg.selectAll('*').remove();
 
+    // 准备数据
+    const simNodes: SimNode[] = nodes.map(n => ({ ...n }));
+    const simLinks: SimLink[] = links.map(l => ({ ...l, source: l.source, target: l.target }));
+
+    // 定义箭头
     const defs = svg.append('defs');
-
     defs.append('marker')
-      .attr('id', 'arrowhead-input')
-      .attr('viewBox', '-0 -5 10 10')
-      .attr('refX', 20)
+      .attr('id', 'arrow-in')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 28)
       .attr('refY', 0)
-      .attr('orient', 'auto')
       .attr('markerWidth', 6)
       .attr('markerHeight', 6)
+      .attr('orient', 'auto')
       .append('path')
-      .attr('d', 'M 0,-5 L 10,0 L 0,5')
-      .attr('fill', '#999');
+      .attr('d', 'M0,-4L10,0L0,4')
+      .attr('fill', '#666');
 
     defs.append('marker')
-      .attr('id', 'arrowhead-output')
-      .attr('viewBox', '-0 -5 10 10')
-      .attr('refX', 20)
+      .attr('id', 'arrow-out')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 28)
       .attr('refY', 0)
-      .attr('orient', 'auto')
       .attr('markerWidth', 6)
       .attr('markerHeight', 6)
+      .attr('orient', 'auto')
       .append('path')
-      .attr('d', 'M 0,-5 L 10,0 L 0,5')
+      .attr('d', 'M0,-4L10,0L0,4')
       .attr('fill', '#FF9800');
-
-    const gradient = defs.append('linearGradient')
-      .attr('id', 'link-gradient')
-      .attr('gradientUnits', 'userSpaceOnUse');
-
-    gradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', '#4CAF50');
-
-    gradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', '#FF9800');
 
     const g = svg.append('g');
 
-    const zoom = d3.zoom<SVGSVGElement, unknown>()
-      .scaleExtent([0.3, 3])
-      .on('zoom', (event) => {
-        g.attr('transform', event.transform);
-      });
+    // 缩放
+    svg.call(d3.zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.2, 4])
+      .on('zoom', (e) => g.attr('transform', e.transform)));
 
-    svg.call(zoom);
-
-    const simulation = d3.forceSimulation<SimulationNode>(simulationNodes)
-      .force('link', d3.forceLink<SimulationNode, SimulationLink>(simulationLinks)
+    // 创建 simulation
+    const simulation = d3.forceSimulation<SimNode, SimLink>(simNodes)
+      .force('link', d3.forceLink<SimNode, SimLink>(simLinks)
         .id(d => d.id)
-        .distance(150)
-        .strength(0.5))
-      .force('charge', d3.forceManyBody().strength(-400))
+        .distance(180))
+      .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(60))
-      .force('x', d3.forceX(width / 2).strength(0.05))
-      .force('y', d3.forceY(height / 2).strength(0.05));
+      .force('collision', d3.forceCollide<SimNode>().radius(70))
+      .alphaDecay(0.02);
 
-    const link = g.append('g')
-      .attr('class', 'links')
-      .selectAll('line')
-      .data(simulationLinks)
+    simRef.current = simulation;
+
+    // 绘制连线
+    const linkGroup = g.append('g').attr('class', 'links');
+    const linkSel = linkGroup.selectAll<SVGLineElement, SimLink>('line')
+      .data(simLinks)
       .enter()
       .append('line')
-      .attr('class', 'link')
-      .attr('stroke', d => d.type === 'input' ? '#999' : '#FF9800')
+      .attr('stroke', d => d.type === 'input' ? '#555' : '#FF9800')
       .attr('stroke-width', 2)
-      .attr('stroke-dasharray', d => d.type === 'input' ? '5,5' : 'none')
-      .attr('marker-end', d => d.type === 'input' ? 'url(#arrowhead-input)' : 'url(#arrowhead-output)')
-      .attr('opacity', 0)
-      .transition()
-      .duration(800)
-      .delay((_, i) => i * 100)
-      .attr('opacity', 0.7);
+      .attr('stroke-dasharray', d => d.type === 'input' ? '6,4' : 'none')
+      .attr('marker-end', d => d.type === 'input' ? 'url(#arrow-in)' : 'url(#arrow-out)');
 
-    const node = g.append('g')
-      .attr('class', 'nodes')
-      .selectAll('g')
-      .data(simulationNodes)
+    // 绘制节点
+    const nodeGroup = g.append('g').attr('class', 'nodes');
+    const nodeSel = nodeGroup.selectAll<SVGGElement, SimNode>('g')
+      .data(simNodes)
       .enter()
       .append('g')
       .attr('class', 'node')
-      .call(d3.drag<SVGGElement, SimulationNode>()
-        .on('start', (event, d) => {
-          if (!event.active) simulation.alphaTarget(0.3).restart();
+      .call(d3.drag<SVGGElement, SimNode>()
+        .on('start', (e, d) => {
+          if (!e.active) simulation.alphaTarget(0.3).restart();
           d.fx = d.x;
           d.fy = d.y;
         })
-        .on('drag', (event, d) => {
-          d.fx = event.x;
-          d.fy = event.y;
+        .on('drag', (e, d) => {
+          d.fx = e.x;
+          d.fy = e.y;
         })
-        .on('end', (event, d) => {
-          if (!event.active) simulation.alphaTarget(0);
+        .on('end', (e, d) => {
+          if (!e.active) simulation.alphaTarget(0);
           d.fx = undefined;
           d.fy = undefined;
         }));
 
-    node.each(function(d) {
+    // 为每个节点添加形状
+    nodeSel.each(function(d) {
       const el = d3.select(this);
 
       if (d.type === 'formula') {
+        // 公式节点：矩形
         el.append('rect')
-          .attr('width', 140)
+          .attr('width', 150)
           .attr('height', 50)
-          .attr('x', -70)
+          .attr('x', -75)
           .attr('y', -25)
           .attr('rx', 8)
-          .attr('ry', 8)
-          .attr('fill', '#1a1a2e')
+          .attr('fill', '#1e1e2e')
           .attr('stroke', '#FF9800')
-          .attr('stroke-width', 2)
-          .attr('opacity', 0)
-          .transition()
-          .duration(500)
-          .delay(300)
-          .attr('opacity', 1);
+          .attr('stroke-width', 2);
 
         el.append('text')
           .attr('text-anchor', 'middle')
           .attr('dominant-baseline', 'middle')
           .attr('fill', '#FF9800')
-          .attr('font-size', '11px')
-          .attr('font-weight', 'bold')
+          .attr('font-size', '12px')
+          .attr('font-weight', '600')
           .attr('font-family', 'serif')
-          .text(d.symbol.length > 16 ? d.symbol.substring(0, 16) + '...' : d.symbol)
-          .attr('opacity', 0)
-          .transition()
-          .duration(500)
-          .delay(500)
-          .attr('opacity', 1);
+          .text(d.symbol.length > 18 ? d.symbol.substring(0, 18) + '...' : d.symbol);
       } else {
-        // 节点颜色：known=绿色, target=红色, derived=蓝色
+        // 物理量节点：圆形
         const colors: Record<string, string> = {
           known: '#4CAF50',
           target: '#F44336',
@@ -183,59 +153,48 @@ const DerivationGraph: React.FC<DerivationGraphProps> = ({ nodes, links, width, 
         const color = colors[d.type] || '#888';
 
         el.append('circle')
-          .attr('r', 0)
-          .attr('fill', '#1a1a2e')
+          .attr('r', 32)
+          .attr('fill', '#1e1e2e')
           .attr('stroke', color)
-          .attr('stroke-width', 3)
-          .transition()
-          .duration(500)
-          .delay(200)
-          .attr('r', 30);
+          .attr('stroke-width', 3);
 
         el.append('text')
           .attr('text-anchor', 'middle')
           .attr('dominant-baseline', 'middle')
           .attr('fill', color)
-          .attr('font-size', '14px')
+          .attr('font-size', '16px')
           .attr('font-weight', 'bold')
-          .text(d.symbol)
-          .attr('opacity', 0)
-          .transition()
-          .duration(500)
-          .delay(400)
-          .attr('opacity', 1);
+          .text(d.symbol);
 
         el.append('text')
           .attr('text-anchor', 'middle')
-          .attr('y', 42)
+          .attr('y', 45)
           .attr('fill', '#888')
           .attr('font-size', '10px')
-          .text(d.label)
-          .attr('opacity', 0)
-          .transition()
-          .duration(500)
-          .delay(500)
-          .attr('opacity', 1);
+          .text(d.label);
       }
     });
 
-    node.append('title')
-      .text(d => `${d.label}\n${d.symbol}${d.unit ? ' (' + d.unit + ')' : ''}`);
+    // Tooltip
+    nodeSel.append('title')
+      .text(d => `${d.label} (${d.symbol})${d.unit ? '\n单位: ' + d.unit : ''}`);
 
+    // Tick 更新位置
     simulation.on('tick', () => {
-      link
-        .attr('x1', d => (d.source as SimulationNode).x || 0)
-        .attr('y1', d => (d.source as SimulationNode).y || 0)
-        .attr('x2', d => (d.target as SimulationNode).x || 0)
-        .attr('y2', d => (d.target as SimulationNode).y || 0);
+      linkSel
+        .attr('x1', d => (d.source as SimNode).x ?? 0)
+        .attr('y1', d => (d.source as SimNode).y ?? 0)
+        .attr('x2', d => (d.target as SimNode).x ?? 0)
+        .attr('y2', d => (d.target as SimNode).y ?? 0);
 
-      node.attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+      nodeSel.attr('transform', d => `translate(${d.x ?? 0},${d.y ?? 0})`);
     });
 
+    // 清理
     return () => {
       simulation.stop();
     };
-  }, [nodes, links, width, height, simulationNodes, simulationLinks]);
+  }, [nodes, links, width, height]);
 
   if (nodes.length === 0) {
     return (
