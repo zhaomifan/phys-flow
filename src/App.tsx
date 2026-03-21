@@ -5,14 +5,20 @@ import DerivationGraph from './components/DerivationGraph';
 import { findDerivationPath, buildVisualizationGraph } from './utils/derivationEngine';
 import './App.css';
 
+type MobileTab = 'known' | 'target' | 'result';
+
 const App: React.FC = () => {
   const [knownQuantities, setKnownQuantities] = useState<string[]>([]);
   const [targetQuantities, setTargetQuantities] = useState<string[]>([]);
   const [graphDimensions, setGraphDimensions] = useState({ width: 600, height: 400 });
+  const [activeTab, setActiveTab] = useState<MobileTab>('known');
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [graphExpanded, setGraphExpanded] = useState(false);
   const graphContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const updateDimensions = () => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
       if (graphContainerRef.current) {
         const { clientWidth, clientHeight } = graphContainerRef.current;
         setGraphDimensions({
@@ -22,9 +28,9 @@ const App: React.FC = () => {
       }
     };
 
-    updateDimensions();
-    window.addEventListener('resize', updateDimensions);
-    return () => window.removeEventListener('resize', updateDimensions);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const derivationResult = useMemo(() => {
@@ -63,6 +69,108 @@ const App: React.FC = () => {
     setTargetQuantities([]);
   }, []);
 
+  // 移动端 Tab 图标
+  const tabIcons: Record<MobileTab, string> = {
+    known: '📝',
+    target: '🎯',
+    result: '📊'
+  };
+
+  const tabLabels: Record<MobileTab, string> = {
+    known: '已知量',
+    target: '目标量',
+    result: '推导'
+  };
+
+  // 移动端布局
+  if (isMobile) {
+    return (
+      <div className="app mobile">
+        <header className="app-header">
+          <h1>⚛️ PhysFlow</h1>
+          <div className="header-actions">
+            <button onClick={swapSelections} disabled={knownQuantities.length === 0 && targetQuantities.length === 0}>
+              ⇄
+            </button>
+            <button onClick={clearAll} disabled={knownQuantities.length === 0 && targetQuantities.length === 0}>
+              ✕
+            </button>
+          </div>
+        </header>
+
+        <main className="main-content">
+          {/* 图谱区域 - 可折叠 */}
+          <div className={`graph-section mobile ${graphExpanded ? 'expanded' : ''}`}>
+            <div className="graph-header" onClick={() => setGraphExpanded(!graphExpanded)}>
+              <span>推导图谱</span>
+              <span className="toggle-icon">{graphExpanded ? '▼' : '▲'}</span>
+            </div>
+            <div className="graph-container" ref={graphContainerRef}>
+              <DerivationGraph
+                nodes={graphData.nodes}
+                links={graphData.links}
+                width={graphDimensions.width}
+                height={graphExpanded ? 300 : 150}
+              />
+            </div>
+          </div>
+
+          {/* Tab 内容区 */}
+          <div className="tab-content">
+            {activeTab === 'known' && (
+              <QuantitySelector
+                title="已知量"
+                selected={knownQuantities}
+                onChange={handleKnownChange}
+                excludeIds={targetQuantities}
+                color="#4CAF50"
+              />
+            )}
+            {activeTab === 'target' && (
+              <QuantitySelector
+                title="目标量"
+                selected={targetQuantities}
+                onChange={handleTargetChange}
+                excludeIds={knownQuantities}
+                color="#F44336"
+              />
+            )}
+            {activeTab === 'result' && (
+              <DerivationSteps
+                steps={derivationResult.path}
+                success={derivationResult.success}
+                knownQuantities={knownQuantities}
+                targetQuantities={targetQuantities}
+                reason={derivationResult.reason}
+              />
+            )}
+          </div>
+        </main>
+
+        {/* 底部 Tab 栏 */}
+        <nav className="tab-bar">
+          {(['known', 'target', 'result'] as MobileTab[]).map(tab => (
+            <button
+              key={tab}
+              className={`tab-item ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              <span className="tab-icon">{tabIcons[tab]}</span>
+              <span className="tab-label">{tabLabels[tab]}</span>
+              {tab === 'known' && knownQuantities.length > 0 && (
+                <span className="tab-badge">{knownQuantities.length}</span>
+              )}
+              {tab === 'target' && targetQuantities.length > 0 && (
+                <span className="tab-badge">{targetQuantities.length}</span>
+              )}
+            </button>
+          ))}
+        </nav>
+      </div>
+    );
+  }
+
+  // 桌面端布局
   return (
     <div className="app">
       <header className="app-header">

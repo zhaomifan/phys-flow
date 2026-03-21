@@ -29,6 +29,8 @@ body {
   color: var(--text-primary);
 }
 
+/* ==================== 通用样式 ==================== */
+
 .app {
   display: flex;
   flex-direction: column;
@@ -87,39 +89,7 @@ body {
   cursor: not-allowed;
 }
 
-.main-content {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
-
-.panel {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.left-panel,
-.right-panel {
-  width: 280px;
-  min-width: 280px;
-  background: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
-}
-
-.right-panel {
-  border-right: none;
-  border-left: 1px solid var(--border-color);
-}
-
-.center-panel {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--bg-primary);
-  min-width: 0;
-}
-
+/* 物理量选择器 */
 .quantity-selector {
   display: flex;
   flex-direction: column;
@@ -249,9 +219,10 @@ body {
   color: var(--text-secondary);
 }
 
+/* 图谱区域 */
 .graph-section {
   flex: 1;
-  min-height: 0;  /* 允许 flex 缩小 */
+  min-height: 0;
   border-bottom: 1px solid var(--border-color);
   position: relative;
 }
@@ -285,6 +256,7 @@ body {
   background: var(--bg-primary);
 }
 
+/* 推导步骤 */
 .steps-section {
   height: 280px;
   min-height: 280px;
@@ -327,7 +299,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .steps-header h3 {
@@ -507,71 +479,188 @@ body {
   opacity: 0.7;
 }
 
-@media (max-width: 768px) {
-  .app-header {
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px 16px;
-  }
+/* ==================== 桌面端布局 ==================== */
 
-  .header-content {
-    text-align: center;
-  }
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
 
-  .header-content h1 {
-    font-size: 20px;
-  }
+.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  .main-content {
-    flex-direction: column;
-    overflow: hidden;
-  }
+.left-panel,
+.right-panel {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+}
 
-  .left-panel,
-  .right-panel {
-    width: 100%;
-    min-width: 100%;
-    max-height: 200px;
-    flex-shrink: 0;
-    border: none;
-    border-bottom: 1px solid var(--border-color);
-  }
+.right-panel {
+  border-right: none;
+  border-left: 1px solid var(--border-color);
+}
 
-  .right-panel {
-    border-bottom: none;
-    border-top: 1px solid var(--border-color);
-    max-height: 180px;
-  }
+.center-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  min-width: 0;
+}
 
-  .center-panel {
-    flex: 1;
-    min-height: 0;
-  }
+/* ==================== 移动端布局 ==================== */
 
-  .graph-section {
-    min-height: 0;
-  }
+.app.mobile {
+  position: relative;
+}
 
-  .steps-section {
-    height: 200px;
-    min-height: 200px;
-    max-height: 200px;
-  }
+.app.mobile .app-header {
+  padding: 10px 16px;
+}
 
-  .quantity-selector {
-    height: auto;
-    max-height: inherit;
-  }
+.app.mobile .app-header h1 {
+  font-size: 20px;
+}
 
-  .categories {
-    max-height: 140px;
-  }
+.app.mobile .header-actions button {
+  padding: 6px 12px;
+  font-size: 16px;
+}
 
-  .app-footer {
-    padding: 6px 16px;
-  }
+.app.mobile .main-content {
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  .app-footer .tips {
-    display: none;
-  }
+/* 移动端图谱 */
+.graph-section.mobile {
+  flex: none;
+  height: auto;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  transition: all 0.3s ease;
+}
+
+.graph-section.mobile.expanded {
+  flex: 1;
+}
+
+.graph-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.toggle-icon {
+  font-size: 12px;
+}
+
+.graph-container {
+  height: 150px;
+  overflow: hidden;
+  transition: height 0.3s ease;
+}
+
+.graph-section.mobile.expanded .graph-container {
+  height: 300px;
+}
+
+/* 移动端 Tab 内容 */
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+  background: var(--bg-secondary);
+}
+
+.tab-content .quantity-selector {
+  height: 100%;
+}
+
+.tab-content .derivation-steps {
+  height: 100%;
+  background: transparent;
+}
+
+/* 底部 Tab 栏 */
+.tab-bar {
+  display: flex;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.tab-item.active {
+  color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, transparent);
+}
+
+.tab-icon {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
+
+.tab-label {
+  font-size: 11px;
+}
+
+.tab-badge {
+  position: absolute;
+  top: 4px;
+  right: calc(50% - 20px);
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* 移动端步骤样式调整 */
+.app.mobile .step-item {
+  padding: 8px;
+}
+
+.app.mobile .formula-latex {
+  font-size: 14px;
+}
+
+.app.mobile .quantity-item {
+  padding: 8px 12px;
+}
+
+.app.mobile .quantity-item .symbol {
+  font-size: 14px;
+  min-width: 30px;
+}
+
+.app.mobile .quantity-item .name {
+  font-size: 12px;
 }
