@@ -522,6 +522,11 @@ body {
 
 .app.mobile .app-header {
   padding: 10px 16px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .app.mobile .app-header h1 {
@@ -536,6 +541,9 @@ body {
 .app.mobile .main-content {
   flex-direction: column;
   overflow: hidden;
+  padding-top: 52px;
+  padding-bottom: 60px;
+  height: 100vh;
 }
 
 /* 移动端图谱 */
@@ -592,13 +600,17 @@ body {
   background: transparent;
 }
 
-/* 底部 Tab 栏 */
+/* 底部 Tab 栏 - 固定定位 */
 .tab-bar {
   display: flex;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
-  flex-shrink: 0;
-  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 .tab-item {
@@ -607,13 +619,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 10px 0;
+  padding: 12px 0 10px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   position: relative;
   transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .tab-item.active {
