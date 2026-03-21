@@ -174,7 +174,13 @@ const DerivationGraph: React.FC<DerivationGraphProps> = ({ nodes, links, width, 
           .delay(500)
           .attr('opacity', 1);
       } else {
-        const color = d.type === 'known' ? '#4CAF50' : '#F44336';
+        // 节点颜色：known=绿色, target=红色, derived=蓝色
+        const colors: Record<string, string> = {
+          known: '#4CAF50',
+          target: '#F44336',
+          derived: '#2196F3'
+        };
+        const color = colors[d.type] || '#888';
 
         el.append('circle')
           .attr('r', 0)

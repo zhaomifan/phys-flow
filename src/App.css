@@ -375,6 +375,11 @@ body {
   color: var(--red);
 }
 
+.quantity-tag.target.reached {
+  background: color-mix(in srgb, var(--green) 20%, transparent);
+  color: var(--green);
+}
+
 .steps-list {
   flex: 1;
   overflow-y: auto;

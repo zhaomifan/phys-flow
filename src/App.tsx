@@ -107,6 +107,7 @@ const App: React.FC = () => {
               success={derivationResult.success}
               knownQuantities={knownQuantities}
               targetQuantities={targetQuantities}
+              reason={derivationResult.reason}
             />
           </div>
         </section>

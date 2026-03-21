@@ -10,8 +10,7 @@ export interface Formula {
   id: string;
   name: string;
   latex: string;
-  inputs: string[];
-  outputs: string[];
+  quantities: string[];  // 公式涉及的所有物理量，可互相推导
   category: string;
 }
 
@@ -19,7 +18,7 @@ export const physicsQuantities: PhysicsQuantity[] = [
   // 运动学
   { id: 'displacement', name: '位移', symbol: 's', unit: 'm', category: 'kinematics' },
   { id: 'initial_velocity', name: '初速度', symbol: 'v₀', unit: 'm/s', category: 'kinematics' },
-  { id: 'velocity', name: '速度', symbol: 'v', unit: 'm/s', category: 'kinematics' },
+  { id: 'velocity', name: '末速度', symbol: 'v', unit: 'm/s', category: 'kinematics' },
   { id: 'acceleration', name: '加速度', symbol: 'a', unit: 'm/s²', category: 'kinematics' },
   { id: 'time', name: '时间', symbol: 't', unit: 's', category: 'kinematics' },
   // 动力学
@@ -46,154 +45,144 @@ export const physicsQuantities: PhysicsQuantity[] = [
   { id: 'temperature_change', name: '温度变化', symbol: 'ΔT', unit: 'K', category: 'thermodynamics' },
 ];
 
+// 公式只定义涉及的物理量，任一未知量可由其余已知量推导
 export const formulas: Formula[] = [
   // 运动学公式
   {
     id: 'kinematic_1',
-    name: '匀变速直线运动位移公式',
+    name: '匀变速位移公式',
     latex: 's = v₀t + ½at²',
-    inputs: ['initial_velocity', 'time', 'acceleration'],
-    outputs: ['displacement'],
+    quantities: ['displacement', 'initial_velocity', 'time', 'acceleration'],
     category: '运动学'
   },
   {
     id: 'kinematic_2',
-    name: '速度-时间关系',
+    name: '速度公式',
     latex: 'v = v₀ + at',
-    inputs: ['initial_velocity', 'acceleration', 'time'],
-    outputs: ['velocity'],
+    quantities: ['velocity', 'initial_velocity', 'acceleration', 'time'],
     category: '运动学'
   },
   {
     id: 'kinematic_3',
-    name: '速度-位移关系',
+    name: '速度位移公式',
     latex: 'v² - v₀² = 2as',
-    inputs: ['velocity', 'initial_velocity', 'acceleration'],
-    outputs: ['displacement'],
+    quantities: ['velocity', 'initial_velocity', 'acceleration', 'displacement'],
     category: '运动学'
   },
   {
     id: 'kinematic_4',
     name: '平均速度公式',
     latex: 's = ½(v₀ + v)t',
-    inputs: ['initial_velocity', 'velocity', 'time'],
-    outputs: ['displacement'],
+    quantities: ['displacement', 'initial_velocity', 'velocity', 'time'],
     category: '运动学'
   },
-  // 动力学公式
+  // 动力学
   {
     id: 'newton_second',
     name: '牛顿第二定律',
     latex: 'F = ma',
-    inputs: ['mass', 'acceleration'],
-    outputs: ['force'],
+    quantities: ['force', 'mass', 'acceleration'],
     category: '动力学'
   },
   {
-    id: 'friction_force',
-    name: '摩擦力公式',
-    latex: 'f = μN = μmg',
-    inputs: ['friction_coefficient', 'mass'],
-    outputs: ['force'],
+    id: 'friction',
+    name: '摩擦力',
+    latex: 'f = μmg',
+    quantities: ['force', 'friction_coefficient', 'mass'],
     category: '动力学'
   },
-  // 能量公式
+  // 能量
   {
     id: 'kinetic_energy',
-    name: '动能公式',
+    name: '动能',
     latex: 'Eₖ = ½mv²',
-    inputs: ['mass', 'velocity'],
-    outputs: ['kinetic_energy'],
+    quantities: ['kinetic_energy', 'mass', 'velocity'],
     category: '能量'
   },
   {
     id: 'potential_energy',
-    name: '重力势能公式',
+    name: '重力势能',
     latex: 'Eₚ = mgh',
-    inputs: ['mass', 'height'],
-    outputs: ['potential_energy'],
+    quantities: ['potential_energy', 'mass', 'height'],
     category: '能量'
   },
   {
     id: 'work',
-    name: '功的公式',
+    name: '功',
     latex: 'W = Fs',
-    inputs: ['force', 'displacement'],
-    outputs: ['work'],
+    quantities: ['work', 'force', 'displacement'],
     category: '能量'
   },
   {
     id: 'power',
-    name: '功率公式',
+    name: '功率',
     latex: 'P = W/t',
-    inputs: ['work', 'time'],
-    outputs: ['power'],
+    quantities: ['power', 'work', 'time'],
     category: '能量'
   },
   {
     id: 'momentum',
-    name: '动量公式',
+    name: '动量',
     latex: 'p = mv',
-    inputs: ['mass', 'velocity'],
-    outputs: ['momentum'],
+    quantities: ['momentum', 'mass', 'velocity'],
     category: '能量'
   },
   {
     id: 'work_energy',
     name: '动能定理',
     latex: 'W = ½mv² - ½mv₀²',
-    inputs: ['mass', 'velocity', 'initial_velocity'],
-    outputs: ['work'],
+    quantities: ['work', 'mass', 'velocity', 'initial_velocity'],
     category: '能量'
   },
-  // 电学公式
   {
-    id: 'ohm_law',
+    id: 'energy_conservation',
+    name: '机械能守恒',
+    latex: '½mv² + mgh = ½mv₀² + mgh₀',
+    quantities: ['velocity', 'height', 'initial_velocity', 'mass'],
+    category: '能量'
+  },
+  // 电学
+  {
+    id: 'ohm',
     name: '欧姆定律',
     latex: 'U = IR',
-    inputs: ['current', 'resistance'],
-    outputs: ['voltage'],
+    quantities: ['voltage', 'current', 'resistance'],
     category: '电学'
   },
   {
     id: 'electric_power',
-    name: '电功率公式',
+    name: '电功率',
     latex: 'P = UI',
-    inputs: ['voltage', 'current'],
-    outputs: ['power'],
+    quantities: ['power', 'voltage', 'current'],
     category: '电学'
   },
   {
-    id: 'joule_law',
+    id: 'joule',
     name: '焦耳定律',
     latex: 'Q = I²Rt',
-    inputs: ['current', 'resistance', 'time'],
-    outputs: ['heat'],
+    quantities: ['heat', 'current', 'resistance', 'time'],
     category: '电学'
   },
   {
     id: 'electric_energy',
-    name: '电能公式',
+    name: '电能',
     latex: 'E = UIt',
-    inputs: ['voltage', 'current', 'time'],
-    outputs: ['electric_energy'],
+    quantities: ['electric_energy', 'voltage', 'current', 'time'],
     category: '电学'
   },
   {
-    id: 'charge_current',
-    name: '电流定义式',
+    id: 'charge',
+    name: '电荷量',
     latex: 'Q = It',
-    inputs: ['current', 'time'],
-    outputs: ['charge'],
+    quantities: ['charge', 'current', 'time'],
     category: '电学'
   },
-  // 热学公式
+  // 热学
   {
-    id: 'heat_capacity',
-    name: '热量计算公式',
+    id: 'heat',
+    name: '热量公式',
     latex: 'Q = cmΔT',
-    inputs: ['specific_heat', 'mass', 'temperature_change'],
-    outputs: ['heat'],
+    quantities: ['heat', 'specific_heat', 'mass', 'temperature_change'],
     category: '热学'
   },
 ];
