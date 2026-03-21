@@ -3,8 +3,9 @@ import { physicsQuantities, formulas } from '../data/physicsData';
 
 export interface DerivationStep {
   formula: Formula;
-  knownInputs: string[];   // 已知的输入量
+  knownInputs: string[];   // 使用的已知量
   derived: string;         // 推导出的物理量
+  depth: number;           // 推导深度
 }
 
 export interface DerivationResult {
@@ -31,96 +32,135 @@ export interface GraphLink {
 }
 
 /**
- * 核心推导算法：
- * 对于每个公式(涉及n个物理量)，如果已知n-1个，就能推导出剩下的1个
- * 支持链式推导：公式1推出的新量可以作为公式2的输入
- * 避免循环：用 visited 集合记录已尝试的 (公式, 目标量) 组合
+ * 核心推导算法
+ * 
+ * 规则：
+ * 1. 一个公式包含 n 个物理量，已知 n-1 个即可推导出剩余 1 个
+ * 2. 推导出的新量可以作为其他公式的已知量继续推导（链式）
+ * 3. 防循环：同一公式对同一未知量只能推导一次
+ * 4. 终止条件：目标量全部推导出，或无法继续推导
  */
 export function findDerivationPath(
   knownQuantities: string[],
   targetQuantities: string[]
 ): DerivationResult {
+  // 边界检查
   if (knownQuantities.length === 0) {
-    return { path: [], derivedQuantities: new Set(), success: false, reason: '未选择已知量' };
+    return { path: [], derivedQuantities: new Set(), success: false, reason: '请先选择已知物理量' };
   }
   if (targetQuantities.length === 0) {
-    return { path: [], derivedQuantities: new Set(knownQuantities), success: false, reason: '未选择目标量' };
+    return { path: [], derivedQuantities: new Set(knownQuantities), success: false, reason: '请选择要推导的目标量' };
   }
 
-  // 当前已知的物理量集合
   const known = new Set<string>(knownQuantities);
   const targets = new Set(targetQuantities);
   const path: DerivationStep[] = [];
 
-  // 记录已使用的推导组合，避免循环: "formulaId:unknownId"
+  // 检查已知量是否已包含目标量
+  const alreadyKnown = targetQuantities.filter(t => known.has(t));
+  if (alreadyKnown.length === targetQuantities.length) {
+    return { path: [], derivedQuantities: known, success: true, reason: '目标量已是已知量' };
+  }
+
+  // 记录已使用的推导，避免循环: "formulaId→unknownId"
   const usedDerivations = new Set<string>();
 
-  // 检查目标是否已全部达成
-  const allTargetsReached = () => {
+  // 判断目标是否全部达成
+  const allTargetsReached = (): boolean => {
     for (const t of targets) {
       if (!known.has(t)) return false;
     }
     return true;
   };
 
-  let iteration = 0;
-  const maxIterations = 50; // 防止无限循环
+  /**
+   * 尝试使用某个公式推导一个未知量
+   * 返回：可推导的未知量，或 null
+   */
+  const tryDerive = (formula: Formula): { unknown: string; knownInputs: string[] } | null => {
+    const knownInFormula: string[] = [];
+    const unknownInFormula: string[] = [];
 
-  while (!allTargetsReached() && iteration < maxIterations) {
-    iteration++;
-    let foundNewInThisRound = false;
-
-    for (const formula of formulas) {
-      if (allTargetsReached()) break;
-
-      // 统计公式中已知和未知的物理量
-      const knownInFormula: string[] = [];
-      const unknownInFormula: string[] = [];
-
-      for (const q of formula.quantities) {
-        if (known.has(q)) {
-          knownInFormula.push(q);
-        } else {
-          unknownInFormula.push(q);
-        }
-      }
-
-      // 关键条件：已知 n-1 个，未知 1 个，就可以推导
-      if (unknownInFormula.length === 1 && knownInFormula.length === formula.quantities.length - 1) {
-        const unknownId = unknownInFormula[0];
-        const derivationKey = `${formula.id}:${unknownId}`;
-
-        // 避免重复推导
-        if (usedDerivations.has(derivationKey)) continue;
-
-        // 推导出新的物理量
-        known.add(unknownId);
-        usedDerivations.add(derivationKey);
-
-        path.push({
-          formula,
-          knownInputs: [...knownInFormula],
-          derived: unknownId
-        });
-
-        foundNewInThisRound = true;
+    for (const q of formula.quantities) {
+      if (known.has(q)) {
+        knownInFormula.push(q);
+      } else {
+        unknownInFormula.push(q);
       }
     }
 
-    // 如果这一轮没有找到任何新推导，说明无法继续
-    if (!foundNewInThisRound) break;
+    // 核心条件：已知 n-1 个，未知恰好 1 个
+    if (unknownInFormula.length === 1 && knownInFormula.length === formula.quantities.length - 1) {
+      const unknownId = unknownInFormula[0];
+      const key = `${formula.id}→${unknownId}`;
+
+      // 检查是否已用过此推导
+      if (!usedDerivations.has(key)) {
+        return { unknown: unknownId, knownInputs: knownInFormula };
+      }
+    }
+    return null;
+  };
+
+  let depth = 0;
+  const maxIterations = 100;
+
+  // 主推导循环
+  while (!allTargetsReached() && depth < maxIterations) {
+    let foundThisRound = false;
+    depth++;
+
+    // 优先级1：直接推导目标量的公式
+    for (const formula of formulas) {
+      if (allTargetsReached()) break;
+
+      const result = tryDerive(formula);
+      if (result && targets.has(result.unknown)) {
+        known.add(result.unknown);
+        usedDerivations.add(`${formula.id}→${result.unknown}`);
+        path.push({
+          formula,
+          knownInputs: result.knownInputs,
+          derived: result.unknown,
+          depth
+        });
+        foundThisRound = true;
+      }
+    }
+
+    // 优先级2：推导中间量（可能被后续公式使用）
+    for (const formula of formulas) {
+      if (allTargetsReached()) break;
+
+      const result = tryDerive(formula);
+      if (result && !targets.has(result.unknown)) {
+        known.add(result.unknown);
+        usedDerivations.add(`${formula.id}→${result.unknown}`);
+        path.push({
+          formula,
+          knownInputs: result.knownInputs,
+          derived: result.unknown,
+          depth
+        });
+        foundThisRound = true;
+      }
+    }
+
+    // 这一轮没有任何新推导，终止
+    if (!foundThisRound) break;
   }
 
-  // 判断是否成功
+  // 判断结果
   const success = allTargetsReached();
   let reason: string | undefined;
+
   if (!success) {
-    const missingTargets = [...targets].filter(t => !known.has(t));
-    const missingNames = missingTargets.map(id => {
+    const missing = [...targets].filter(t => !known.has(t));
+    const names = missing.map(id => {
       const q = physicsQuantities.find(q => q.id === id);
       return q ? `${q.name}(${q.symbol})` : id;
     });
-    reason = `无法推导: ${missingNames.join('、')}`;
+    reason = `缺少条件，无法推导：${names.join('、')}`;
   }
 
   return {
@@ -132,7 +172,7 @@ export function findDerivationPath(
 }
 
 /**
- * 构建可视化图谱数据
+ * 构建可视化图谱
  */
 export function buildVisualizationGraph(
   knownQuantities: string[],
@@ -142,100 +182,72 @@ export function buildVisualizationGraph(
   const nodes: GraphNode[] = [];
   const links: GraphLink[] = [];
   const nodeIds = new Set<string>();
+  const targetSet = new Set(targetQuantities);
 
   const getQuantity = (id: string) => physicsQuantities.find(q => q.id === id);
-  const addTarget = new Set(targetQuantities);
 
-  // 添加已知量节点
-  knownQuantities.forEach(id => {
+  const addQuantityNode = (id: string, forceType?: GraphNode['type']) => {
+    if (nodeIds.has(id)) return;
     const q = getQuantity(id);
-    if (q && !nodeIds.has(id)) {
-      // 如果同时也是目标量，标记为 target
-      const isTarget = addTarget.has(id);
-      nodes.push({
-        id,
-        label: q.name,
-        symbol: q.symbol,
-        unit: q.unit,
-        type: isTarget ? 'target' : 'known'
-      });
-      nodeIds.add(id);
-    }
-  });
+    if (!q) return;
 
-  // 添加目标量节点（如果是纯目标，不在已知中）
-  targetQuantities.forEach(id => {
-    if (!nodeIds.has(id)) {
-      const q = getQuantity(id);
-      if (q) {
-        nodes.push({
-          id,
-          label: q.name,
-          symbol: q.symbol,
-          unit: q.unit,
-          type: 'target'
-        });
-        nodeIds.add(id);
-      }
+    let type: GraphNode['type'];
+    if (forceType) {
+      type = forceType;
+    } else if (knownQuantities.includes(id)) {
+      type = targetSet.has(id) ? 'target' : 'known';
+    } else if (targetSet.has(id)) {
+      type = 'target';
+    } else {
+      type = 'derived';
     }
-  });
 
-  // 添加推导路径中的公式节点和链接
+    nodes.push({
+      id,
+      label: q.name,
+      symbol: q.symbol,
+      unit: q.unit,
+      type
+    });
+    nodeIds.add(id);
+  };
+
+  // 添加初始已知量
+  knownQuantities.forEach(id => addQuantityNode(id));
+
+  // 添加目标量（如果不在已知中）
+  targetQuantities.forEach(id => addQuantityNode(id));
+
+  // 处理每个推导步骤
   derivationPath.forEach((step) => {
-    const formulaNodeId = `formula_${step.formula.id}_${step.derived}`;
+    const formulaId = `formula_${step.formula.id}_${step.derived}`;
 
     // 添加公式节点
-    if (!nodeIds.has(formulaNodeId)) {
+    if (!nodeIds.has(formulaId)) {
       nodes.push({
-        id: formulaNodeId,
+        id: formulaId,
         label: step.formula.name,
         symbol: step.formula.latex,
         unit: '',
         type: 'formula'
       });
-      nodeIds.add(formulaNodeId);
+      nodeIds.add(formulaId);
     }
 
-    // 添加从已知量到公式的链接（输入）
+    // 输入链接：已知量 → 公式
     step.knownInputs.forEach(inputId => {
-      // 如果中间推导出的量还没有节点，添加为 derived
-      if (!nodeIds.has(inputId)) {
-        const q = getQuantity(inputId);
-        if (q) {
-          nodes.push({
-            id: inputId,
-            label: q.name,
-            symbol: q.symbol,
-            unit: q.unit,
-            type: 'derived'
-          });
-          nodeIds.add(inputId);
-        }
-      }
+      addQuantityNode(inputId);
       links.push({
         source: inputId,
-        target: formulaNodeId,
+        target: formulaId,
         type: 'input'
       });
     });
 
-    // 添加从公式到推导量的链接（输出）
-    if (!nodeIds.has(step.derived)) {
-      const q = getQuantity(step.derived);
-      if (q) {
-        const isTarget = addTarget.has(step.derived);
-        nodes.push({
-          id: step.derived,
-          label: q.name,
-          symbol: q.symbol,
-          unit: q.unit,
-          type: isTarget ? 'target' : 'derived'
-        });
-        nodeIds.add(step.derived);
-      }
-    }
+    // 输出链接：公式 → 推导量
+    addQuantityNode(step.derived);
     links.push({
-      source: formulaNodeId,
+      source: formulaId,
       target: step.derived,
       type: 'output'
     });
