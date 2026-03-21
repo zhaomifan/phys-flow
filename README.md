@@ -1,73 +1,72 @@
-# React + TypeScript + Vite
+# PhysFlow - 物理公式推导可视化工具
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个基于 React + D3.js 的交互式物理公式推导可视化网页应用。
 
-Currently, two official plugins are available:
+## 功能特点
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **三栏布局**：左栏选择已知物理量，右栏选择目标物理量，中间自动展示推导过程
+- **智能推导**：基于图搜索算法，自动找到从已知量到目标量的公式推导路径
+- **可视化图谱**：使用 D3.js 力导向图展示物理量之间的推理关系
+- **交互流畅**：支持节点拖拽、滚轮缩放、动画入场效果
+- **深色主题**：现代化 UI 设计，视觉舒适
 
-## React Compiler
+## 包含的物理公式
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| 分类 | 物理量 | 公式数量 |
+|------|--------|----------|
+| 运动学 | 位移、速度、加速度、时间 | 4 |
+| 动力学 | 质量、力、摩擦系数 | 2 |
+| 能量 | 动能、势能、功、功率、动量 | 5 |
+| 电学 | 电压、电流、电阻、电荷量、电能 | 5 |
+| 热学 | 温度、热量、比热容 | 1 |
 
-## Expanding the ESLint configuration
+## 技术栈
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **前端框架**：React 19 + TypeScript
+- **构建工具**：Vite
+- **可视化**：D3.js
+- **样式**：原生 CSS（CSS 变量、Flexbox）
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 快速开始
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# 安装依赖
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# 启动开发服务器
+npm run dev
+
+# 构建生产版本
+npm run build
+
+# 预览生产构建
+npm run preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 使用说明
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+1. 在左栏「已知量」中选择你已知的物理量
+2. 在右栏「目标量」中选择你想要推导的物理量
+3. 中间区域会自动显示推导路径和可视化图谱
+4. 可以拖拽图谱中的节点调整位置，使用滚轮缩放
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 项目结构
+
 ```
+src/
+├── components/
+│   ├── DerivationGraph.tsx    # D3.js 可视化图谱
+│   ├── DerivationSteps.tsx    # 推导步骤展示
+│   └── QuantitySelector.tsx   # 物理量选择器
+├── data/
+│   └── physicsData.ts         # 物理量和公式数据
+├── utils/
+│   └── derivationEngine.ts    # 推导算法
+├── App.tsx                    # 主应用组件
+├── App.css                    # 样式
+└── main.tsx                   # 入口文件
+```
+
+## 许可证
+
+MIT
