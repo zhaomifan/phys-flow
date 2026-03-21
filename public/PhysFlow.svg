@@ -1,0 +1,42 @@
+<svg width="420" height="120" viewBox="0 0 420 120" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 渐变 -->
+    <linearGradient id="gradText" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="gradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563EB" />
+      <stop offset="100%" style="stop-color:#F97316" />
+    </linearGradient>
+  </defs>
+
+  <!-- 图标：网格 + 推导箭头 -->
+  <g transform="translate(10,20)">
+    <!-- 方块 -->
+    <rect x="0" y="0" width="60" height="60" rx="12" fill="url(#gradIcon)" opacity="0.2"/>
+    
+    <!-- 小节点 -->
+    <circle cx="15" cy="45" r="4" fill="#60A5FA"/>
+    <circle cx="30" cy="30" r="4" fill="#60A5FA"/>
+    <circle cx="45" cy="15" r="4" fill="#F59E0B"/>
+
+    <!-- 连线 -->
+    <line x1="15" y1="45" x2="30" y2="30" stroke="#94A3B8" stroke-width="2"/>
+    <line x1="30" y1="30" x2="45" y2="15" stroke="#94A3B8" stroke-width="2"/>
+
+    <!-- 箭头 -->
+    <polygon points="42,10 50,15 42,20" fill="#F59E0B"/>
+  </g>
+
+  <!-- 主标题 -->
+  <text x="90" y="55" font-size="36" font-weight="700" fill="url(#gradText)" font-family="Arial, sans-serif">
+    PhysFlow
+  </text>
+
+  <!-- 副标题 -->
+  <text x="90" y="85" font-size="14" fill="#94A3B8" font-family="Arial, sans-serif">
+    物理公式推导可视化工具
+  </text>
+</svg>

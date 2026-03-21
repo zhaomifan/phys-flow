@@ -507,16 +507,32 @@ body {
   opacity: 0.7;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 16px;
+  }
+
+  .header-content {
+    text-align: center;
+  }
+
+  .header-content h1 {
+    font-size: 20px;
+  }
+
   .main-content {
     flex-direction: column;
+    overflow: hidden;
   }
 
   .left-panel,
   .right-panel {
     width: 100%;
     min-width: 100%;
-    max-height: 300px;
+    max-height: 200px;
+    flex-shrink: 0;
     border: none;
     border-bottom: 1px solid var(--border-color);
   }
@@ -524,17 +540,38 @@ body {
   .right-panel {
     border-bottom: none;
     border-top: 1px solid var(--border-color);
+    max-height: 180px;
   }
 
   .center-panel {
-    min-height: 400px;
+    flex: 1;
+    min-height: 0;
   }
 
   .graph-section {
-    min-height: 250px;
+    min-height: 0;
   }
 
   .steps-section {
-    height: 250px;
+    height: 200px;
+    min-height: 200px;
+    max-height: 200px;
+  }
+
+  .quantity-selector {
+    height: auto;
+    max-height: inherit;
+  }
+
+  .categories {
+    max-height: 140px;
+  }
+
+  .app-footer {
+    padding: 6px 16px;
+  }
+
+  .app-footer .tips {
+    display: none;
   }
 }
