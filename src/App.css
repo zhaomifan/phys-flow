@@ -18,26 +18,32 @@
   --blue: #2196F3;
 }
 
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  min-height: 100vh;
 }
 
 .app {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .app-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 12px 24px;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 .header-content h1 {
@@ -484,10 +490,11 @@ body {
 }
 
 .app-footer {
-  padding: 12px 24px;
+  padding: 8px 24px;
   background: var(--bg-secondary);
   border-top: 1px solid var(--border-color);
   text-align: center;
+  flex-shrink: 0;
 }
 
 .app-footer p {
