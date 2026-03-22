@@ -1,42 +1,49 @@
-<svg width="420" height="120" viewBox="0 0 420 120" xmlns="http://www.w3.org/2000/svg">
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <!-- 渐变 -->
-    <linearGradient id="gradText" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#F59E0B;stop-opacity:1" />
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#1E40AF"/>
     </linearGradient>
 
-    <linearGradient id="gradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#2563EB" />
-      <stop offset="100%" style="stop-color:#F97316" />
+    <linearGradient id="orangeGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F59E0B"/>
+      <stop offset="100%" stop-color="#EA580C"/>
+    </linearGradient>
+
+    <linearGradient id="midGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A78BFA"/>
+      <stop offset="100%" stop-color="#64748B"/>
     </linearGradient>
   </defs>
 
-  <!-- 图标：网格 + 推导箭头 -->
-  <g transform="translate(10,20)">
-    <!-- 方块 -->
-    <rect x="0" y="0" width="60" height="60" rx="12" fill="url(#gradIcon)" opacity="0.2"/>
-    
-    <!-- 小节点 -->
-    <circle cx="15" cy="45" r="4" fill="#60A5FA"/>
-    <circle cx="30" cy="30" r="4" fill="#60A5FA"/>
-    <circle cx="45" cy="15" r="4" fill="#F59E0B"/>
+  <!-- 网格 -->
+  <g transform="translate(28,28)">
+    <!-- 左列 -->
+    <rect x="0" y="0" width="56" height="56" rx="12" fill="url(#blueGrad)"/>
+    <rect x="0" y="72" width="56" height="56" rx="12" fill="url(#blueGrad)"/>
+    <rect x="0" y="144" width="56" height="56" rx="12" fill="url(#blueGrad)"/>
 
-    <!-- 连线 -->
-    <line x1="15" y1="45" x2="30" y2="30" stroke="#94A3B8" stroke-width="2"/>
-    <line x1="30" y1="30" x2="45" y2="15" stroke="#94A3B8" stroke-width="2"/>
+    <!-- 中列 -->
+    <rect x="72" y="0" width="56" height="56" rx="12" fill="url(#midGrad)"/>
+    <rect x="72" y="72" width="56" height="56" rx="12" fill="url(#midGrad)"/>
+    <rect x="72" y="144" width="56" height="56" rx="12" fill="url(#midGrad)"/>
 
-    <!-- 箭头 -->
-    <polygon points="42,10 50,15 42,20" fill="#F59E0B"/>
+    <!-- 右列 -->
+    <rect x="144" y="0" width="56" height="56" rx="12" fill="url(#orangeGrad)"/>
+    <rect x="144" y="72" width="56" height="56" rx="12" fill="url(#orangeGrad)"/>
+    <rect x="144" y="144" width="56" height="56" rx="12" fill="url(#orangeGrad)"/>
   </g>
 
-  <!-- 主标题 -->
-  <text x="90" y="55" font-size="36" font-weight="700" fill="url(#gradText)" font-family="Arial, sans-serif">
-    PhysFlow
-  </text>
+  <!-- 推导路径（优化直线） -->
+  <g stroke="#FFFFFF" stroke-width="5" stroke-linecap="round">
+    <line x1="56" y1="200" x2="200" y2="56"/>
+  </g>
 
-  <!-- 副标题 -->
-  <text x="90" y="85" font-size="14" fill="#94A3B8" font-family="Arial, sans-serif">
-    物理公式推导可视化工具
-  </text>
+  <!-- 起点 -->
+  <circle cx="56" cy="200" r="7" fill="#FFFFFF"/>
+
+  <!-- 优化箭头（更锐利） -->
+  <polygon points="191,53,208,48,203,65
+
+" fill="#FFFFFF"/>
 </svg>
