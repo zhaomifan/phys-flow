@@ -3,6 +3,7 @@ import QuantitySelector from './components/QuantitySelector';
 import DerivationSteps from './components/DerivationSteps';
 import DerivationGraph from './components/DerivationGraph';
 import { findDerivationPath, buildVisualizationGraph } from './utils/derivationEngine';
+import logoSvg from './assets/PhysFlow.svg';
 import './App.css';
 
 type MobileTab = 'known' | 'target' | 'result';
@@ -87,7 +88,8 @@ const App: React.FC = () => {
     return (
       <div className="app mobile">
         <header className="app-header">
-          <h1>⚛️ PhysFlow</h1>
+          {/* <h1>⚛️ PhysFlow</h1> */}
+          <h1><img src={logoSvg} alt="PhysFlow" className="title-icon"/>PhysFlow</h1>
           <div className="header-actions">
             <button onClick={swapSelections} disabled={knownQuantities.length === 0 && targetQuantities.length === 0}>
               ⇄
@@ -175,7 +177,7 @@ const App: React.FC = () => {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <h1>⚛️ PhysFlow</h1>
+          <h1><img src={logoSvg} alt="PhysFlow" className="title-icon"/>PhysFlow</h1>
           <p className="subtitle">物理公式推导可视化工具</p>
         </div>
         <div className="header-actions">

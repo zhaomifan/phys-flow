@@ -63,6 +63,13 @@ body {
   margin-top: 4px;
 }
 
+.title-icon {
+  vertical-align: middle; /* 垂直居中对齐文字 */
+  height: 1.5em; /* 和当前文字字号等高 */
+  width: auto; /* 保持 SVG 宽高比，避免变形 */
+  margin-right: 8px; /* 可选：图片和文字之间留空隙，更美观 */
+}
+
 .header-actions {
   display: flex;
   gap: 8px;
