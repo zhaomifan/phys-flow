@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PhysFlow</string>
+    <string name="title_activity_main">PhysFlow</string>
+    <string name="package_name">com.physflow.app</string>
+    <string name="custom_url_scheme">com.physflow.app</string>
+</resources>
