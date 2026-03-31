@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import QuantitySelector from './components/QuantitySelector';
 import DerivationSteps from './components/DerivationSteps';
 import DerivationGraph from './components/DerivationGraph';
@@ -168,6 +169,7 @@ const App: React.FC = () => {
             </button>
           ))}
         </nav>
+        <Analytics />
       </div>
     );
   }
@@ -239,6 +241,7 @@ const App: React.FC = () => {
           💡 提示：拖拽节点可调整位置，滚轮可缩放图谱
         </p>
       </footer>
+      <Analytics />
     </div>
   );
 };
